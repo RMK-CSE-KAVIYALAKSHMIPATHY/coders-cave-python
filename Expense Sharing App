@@ -1,0 +1,82 @@
+class ExpenseSharingApp:
+    def __init__(self):
+        self.users = {}
+        self.expenses = []
+
+    def add_user(self, user_name):
+        if user_name not in self.users:
+            self.users[user_name] = 0
+        else:
+            print("User already exists!")
+
+    def add_expense(self, payer, amount, participants):
+        if payer not in self.users:
+            print("Payer does not exist!")
+            return
+
+        # Calculate share per participant
+        share = amount / len(participants)
+
+        # Update payer's balance
+        self.users[payer] -= amount
+
+        # Update participants' balances
+        for participant in participants:
+            if participant not in self.users:
+                print(f"Participant {participant} does not exist!")
+                continue
+            self.users[participant] += share
+
+        # Record the expense
+        self.expenses.append((payer, amount, participants))
+
+    def view_balances(self):
+        for user, balance in self.users.items():
+            print(f"{user}: {balance}")
+
+    def settle_balance(self, user):
+        if user not in self.users:
+            print("User does not exist!")
+            return
+
+        balance = self.users[user]
+        if balance == 0:
+            print("No balance to settle for this user.")
+            return
+
+        for other_user, other_balance in self.users.items():
+            if other_user != user:
+                if balance > 0 and other_balance < 0:
+                    settle_amount = min(abs(other_balance), balance)
+                    print(f"{user} pays {other_user}: {settle_amount}")
+                    balance -= settle_amount
+                    other_balance += settle_amount
+                elif balance < 0 and other_balance > 0:
+                    settle_amount = min(abs(balance), other_balance)
+                    print(f"{other_user} pays {user}: {settle_amount}")
+                    other_balance -= settle_amount
+                    balance += settle_amount
+
+        self.users[user] = balance
+
+
+# Example usage:
+app = ExpenseSharingApp()
+
+# Add users
+app.add_user("Alice")
+app.add_user("Bob")
+app.add_user("Charlie")
+
+# Add expenses
+app.add_expense("Alice", 100, ["Bob", "Charlie"])
+app.add_expense("Bob", 50, ["Alice"])
+app.add_expense("Charlie", 75, ["Alice", "Bob"])
+
+# View balances
+app.view_balances()
+
+# Settle balances
+app.settle_balance("Alice")
+app.settle_balance("Bob")
+app.settle_balance("Charlie")
